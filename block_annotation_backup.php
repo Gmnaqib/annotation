@@ -102,6 +102,151 @@ class block_annotation extends block_base
             $this->title = $this->config->title;
         }
     }
+    {
+        global $COURSE, $USER, $PAGE;
+
+        // Get configuration values
+        $api_url = !empty($this->config->api_url) ? $this->config->api_url : 'https://example.com/api/annotations';
+        $api_timeout = !empty($this->config->api_timeout) ? (int)$this->config->api_timeout : 30;
+        $cache_duration = !empty($this->config->cache_duration) ? (int)$this->config->cache_duration : 300;
+
+        // Prepare data to send to API
+        $course_id = $COURSE->id;
+        $user_id = $USER->id;
+
+        // Get module ID if available
+        $module_id = 0;
+        if (isset($PAGE->cm) && $PAGE->cm) {
+            $module_id = $PAGE->cm->id;
+        }
+
+        $postdata = [
+            'course_id' => $course_id,
+            'module_id' => $module_id,
+            'user_id' => $user_id,
+        ];
+
+        // Create cache key
+        $cache_key = 'block_annotation_' . md5($api_url . serialize($postdata));
+
+        // Try to get from cache first
+        $cache = cache::make('block_annotation', 'apidata');
+        $cached_data = $cache->get($cache_key);
+
+        if ($cached_data !== false) {
+            return $cached_data;
+        }
+
+        // Initialize curl
+        $curl = new curl();
+        $curl->setopt([
+            'CURLOPT_TIMEOUT' => $api_timeout,
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+            'CURLOPT_HTTPHEADER' => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+            ],
+        ]);
+
+        try {
+            // Make API call
+            $response = $curl->post($api_url, json_encode($postdata));
+
+            if ($curl->get_errno()) {
+                // Log error and return empty array
+                debugging('Annotation API curl error: ' . $curl->error);
+                return $this->get_fallback_data();
+            }
+
+            // Decode JSON response
+            $data = json_decode($response, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                debugging('Annotation API JSON decode error: ' . json_last_error_msg());
+                return $this->get_fallback_data();
+            }
+
+            // Validate and sanitize data
+            $validated_data = $this->validate_annotation_data($data);
+
+            // Cache the result
+            $cache->set($cache_key, $validated_data);
+
+            return $validated_data;
+        } catch (Exception $e) {
+            debugging('Annotation API exception: ' . $e->getMessage());
+            return $this->get_fallback_data();
+        }
+    }
+
+    /**
+     * Get fallback data when API fails
+     *
+     * @return array Fallback annotation data
+     */
+    private function get_fallback_data()
+    {
+        return [
+            [
+                'title' => 'Sample Annotation',
+                'description' => 'This is a sample annotation. Configure the API URL in block settings to fetch real data.',
+                'type' => 'example',
+                'image_url' => '',
+                'content' => 'API connection failed. Please check your API URL configuration.',
+            ]
+        ];
+    }
+
+    /**
+     * Validate and sanitize annotation data from API
+     *
+     * @param array $data Raw data from API
+     * @return array Validated annotation data
+     */
+    private function validate_annotation_data($data)
+    {
+        if (!is_array($data)) {
+            return [];
+        }
+
+        $validated = [];
+        foreach ($data as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $annotation = [
+                'title' => isset($item['title']) ? clean_text($item['title']) : '',
+                'description' => isset($item['description']) ? clean_text($item['description']) : '',
+                'type' => isset($item['type']) ? clean_text($item['type']) : '',
+                'image_url' => isset($item['image_url']) ? clean_param($item['image_url'], PARAM_URL) : '',
+                'content' => isset($item['content']) ? clean_text($item['content']) : '',
+            ];
+
+            // Only add if title exists
+            if (!empty($annotation['title'])) {
+                $validated[] = $annotation;
+            }
+        }
+
+        return $validated;
+    }
+
+    /**
+     * Defines configuration data.
+     *
+     * The function is called immediately after init().
+     */
+    public function specialization()
+    {
+
+        // Load user defined title and make sure it's never empty.
+        if (empty($this->config->title)) {
+            $this->title = get_string('pluginname', 'block_annotation');
+        } else {
+            $this->title = $this->config->title;
+        }
+    }
 
     /**
      * Allow multiple instances in a single course?

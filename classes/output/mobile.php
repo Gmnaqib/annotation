@@ -45,82 +45,32 @@ class mobile
      */
     public static function mobile_view($args)
     {
-        global $OUTPUT, $COURSE, $USER, $CFG, $DB;
+        global $OUTPUT, $USER, $CFG;
 
-        // Get API URL from block configuration or use default
-        $apiurl = 'https://example.com/api/annotations'; // Default API URL
-
-        // Try to get API URL from block instance configuration
-        $instances = $DB->get_records(
-            'block_instances',
-            ['blockname' => 'annotation'],
-            'timemodified DESC',
-            '*',
-            0,
-            1
-        );
-
-        if (!empty($instances)) {
-            $instance = reset($instances);
-            $configdata = !empty($instance->configdata) ? unserialize(base64_decode($instance->configdata)) : new \stdClass();
-            if (!empty($configdata->api_url)) {
-                $apiurl = $configdata->api_url;
-            }
-        }
-
-        // Get current course ID, fallback to site course if not available
-        $course_id = (!empty($COURSE) && $COURSE->id > 0) ? $COURSE->id : 1;
-
-        // Get module ID if available
-        $module_id = optional_param('id', 0, PARAM_INT);
-
-        // Prepare data for API call
-        $postdata = [
-            'course_id' => $course_id,
-            'module_id' => $module_id,
-            'user_id'   => $USER->id
-        ];
-
-        // Initialize curl and make API call
-        $curl = new \curl();
-        $curl->setopt([
-            'CURLOPT_TIMEOUT' => 30,
-            'CURLOPT_CONNECTTIMEOUT' => 10,
-            'CURLOPT_HTTPHEADER' => [
-                'Content-Type: application/json',
-                'Accept: application/json',
+        // Use dummy data for now
+        $annotations = [
+            [
+                'title' => 'Annotation Dummy 1',
+                'description' => 'This is the first dummy annotation for testing mobile view.',
+                'type' => 'article',
+                'image_url' => $CFG->wwwroot . '/pix/i/edit.png',
+                'content' => 'This is sample content for the first annotation.',
             ],
-        ]);
-
-        $annotations = [];
-
-        try {
-            // Make API call
-            $response = $curl->post($apiurl, json_encode($postdata));
-
-            if (!$curl->get_errno()) {
-                $data = json_decode($response, true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($data)) {
-                    $annotations = self::validate_annotation_data($data);
-                }
-            }
-        } catch (Exception $e) {
-            // Log error but continue with empty annotations
-            debugging('Annotation API error: ' . $e->getMessage());
-        }
-
-        // If no annotations from API, provide fallback data
-        if (empty($annotations)) {
-            $annotations = [
-                [
-                    'title' => 'Sample Annotation',
-                    'description' => 'This is a sample annotation. Configure the API URL in block settings to fetch real data.',
-                    'type' => 'example',
-                    'image_url' => '',
-                    'content' => 'API connection failed or no data available. Please check your API configuration.',
-                ]
-            ];
-        }
+            [
+                'title' => 'Annotation Dummy 2',
+                'description' => 'This is the second dummy annotation with different content.',
+                'type' => 'tutorial',
+                'image_url' => $CFG->wwwroot . '/pix/i/info.png',
+                'content' => 'This is sample content for the second annotation.',
+            ],
+            [
+                'title' => 'Annotation Dummy 3',
+                'description' => 'This is the third dummy annotation to show multiple items.',
+                'type' => 'example',
+                'image_url' => '',
+                'content' => 'This annotation has no image but has content.',
+            ],
+        ];
 
         // Prepare template data
         $templatedata = [
@@ -142,40 +92,5 @@ class mobile
             'javascript' => '',
             'otherdata'  => []
         ];
-    }
-
-    /**
-     * Validate and sanitize annotation data from API
-     *
-     * @param array $data Raw data from API
-     * @return array Validated annotation data
-     */
-    private static function validate_annotation_data($data)
-    {
-        if (!is_array($data)) {
-            return [];
-        }
-
-        $validated = [];
-        foreach ($data as $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-
-            $annotation = [
-                'title' => isset($item['title']) ? clean_text($item['title']) : '',
-                'description' => isset($item['description']) ? clean_text($item['description']) : '',
-                'type' => isset($item['type']) ? clean_text($item['type']) : '',
-                'image_url' => isset($item['image_url']) ? clean_param($item['image_url'], PARAM_URL) : '',
-                'content' => isset($item['content']) ? clean_text($item['content']) : '',
-            ];
-
-            // Only add if title exists
-            if (!empty($annotation['title'])) {
-                $validated[] = $annotation;
-            }
-        }
-
-        return $validated;
     }
 }
