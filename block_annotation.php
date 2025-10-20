@@ -76,13 +76,13 @@ class block_annotation extends block_base
                 'content' => 'This is sample content for the second annotation.',
             ],
         ];
-        
+
         // Render annotations using template
         $templatedata = [
             'annotations' => $annotations,
             'wwwroot' => $CFG->wwwroot,
         ];
-        
+
         $this->content->text = $OUTPUT->render_from_template('block_annotation/annotation_list', $templatedata);
 
         return $this->content;
