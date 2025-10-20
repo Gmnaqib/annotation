@@ -1,10 +1,12 @@
 {{!
     @template block_annotation/annotation_list
 
-    Template for displaying annotation list.
+    Template for displaying annotation list in web and mobile.
 
     Context variables required for this template:
     * annotations - Array of annotation objects
+    * ismainmenu - Boolean indicating if this is displayed in main menu
+    * wwwroot - Moodle root URL
 
     Example context (json):
     {
@@ -16,28 +18,43 @@
                 "image_url": "https://example.com/image.jpg",
                 "content": "Full content here"
             }
-        ]
+        ],
+        "ismainmenu": false,
+        "wwwroot": "https://your-moodle-site.com"
     }
 }}
-<div class="annotation-list">
+<div class="annotation-list {{#ismainmenu}}main-menu-view{{/ismainmenu}}">
 {{#annotations}}
-  <div class="annotation-item" style="margin-bottom:12px; border:1px solid #ddd; border-radius:6px; padding:8px;">
+  <div class="annotation-item" style="margin-bottom:12px; border:1px solid #dee2e6; border-radius:8px; padding:12px; background:#fff;">
     {{#image_url}}
       <img src="{{image_url}}" alt="{{title}}" style="width:100%; max-height:120px; object-fit:cover; margin-bottom:8px; border-radius:4px;">
     {{/image_url}}
-    <h4 style="margin:0 0 8px 0; font-size:1.1em; color:#333;">{{title}}</h4>
-    <p style="margin:0 0 8px 0; color:#666; line-height:1.4;">{{description}}</p>
-    <small style="color:#999; font-style:italic;"><em>{{type}}</em></small>
+    <h4 style="margin:0 0 8px 0; font-size:1.1em; color:#333; font-weight:600;">{{title}}</h4>
+    <p style="margin:0 0 8px 0; color:#666; line-height:1.4; font-size:0.9em;">{{description}}</p>
+    <small style="color:#999; font-style:italic; font-size:0.8em; text-transform:uppercase; letter-spacing:0.5px;"><em>{{type}}</em></small>
     {{#content}}
-      <div class="annotation-content" style="margin-top:8px; padding-top:8px; border-top:1px solid #eee; font-size:0.9em; color:#555;">
+      <div class="annotation-content" style="margin-top:10px; padding-top:10px; border-top:1px solid #eee; font-size:0.85em; color:#555; line-height:1.5;">
         {{content}}
       </div>
     {{/content}}
   </div>
 {{/annotations}}
 {{^annotations}}
-  <div class="no-annotations" style="text-align:center; padding:20px; color:#999; font-style:italic;">
-    <p>{{#str}}noannotations, block_annotation{{/str}}</p>
+  <div class="no-annotations" style="text-align:center; padding:30px 15px; color:#adb5bd; font-style:italic;">
+    <ion-icon name="document-text-outline" style="font-size:48px; color:#dee2e6; margin-bottom:10px;"></ion-icon>
+    <p style="margin:0; font-size:0.9em;">{{#str}}noannotations, block_annotation{{/str}}</p>
   </div>
 {{/annotations}}
 </div>
+
+{{#ismainmenu}}
+<style>
+.main-menu-view .annotation-item {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease;
+}
+.main-menu-view .annotation-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+</style>
+{{/ismainmenu}}

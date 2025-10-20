@@ -28,17 +28,36 @@ $addons = [
     'block_annotation' => [
         'handlers' => [
             'annotationhandler' => [
-                'delegate' => 'CoreCourseOptionsDelegate',
+                'delegate' => 'CoreBlockDelegate',
                 'method' => 'mobile_view',
                 'displaydata' => [
                     'title' => 'pluginname',
-                    'icon' => 'i/edit',
-                    'class' => 'block_annotation'
+                    'icon' => 'fas fa-sticky-note',
+                    'class' => 'block_annotation',
+                    'priority' => 500,
+                ],
+                'offlinefunctions' => [
+                    'mobile_view' => [],
+                ],
+            ],
+            'annotationmainmenu' => [
+                'delegate' => 'CoreMainMenuDelegate',
+                'method' => 'mobile_main_menu_view',
+                'displaydata' => [
+                    'title' => 'pluginname',
+                    'icon' => 'fas fa-sticky-note',
+                    'class' => 'block_annotation',
+                    'priority' => 500,
+                ],
+                'offlinefunctions' => [
+                    'mobile_main_menu_view' => [],
                 ],
             ],
         ],
         'lang' => [
             ['pluginname', 'block_annotation'],
+            ['noannotations', 'block_annotation'],
+            ['loading', 'block_annotation'],
         ],
     ],
 ];

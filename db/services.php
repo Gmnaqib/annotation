@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * External functions for block_annotation mobile support
  *
  * @package     block_annotation
  * @copyright   2025 Gumilar <gumilarmn@gmail.com>
@@ -24,8 +24,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'block_annotation';
-$plugin->release = '0.2.0';
-$plugin->version = 2025102100;
-$plugin->requires = 2022112800;
-$plugin->maturity = MATURITY_ALPHA;
+$functions = [
+    'block_annotation_mobile_view' => [
+        'classname' => 'block_annotation',
+        'methodname' => 'mobile_view',
+        'description' => 'Returns the mobile view for annotation block',
+        'type' => 'read',
+        'ajax' => false,
+        'loginrequired' => true,
+    ],
+    'block_annotation_mobile_main_menu_view' => [
+        'classname' => 'block_annotation',
+        'methodname' => 'mobile_main_menu_view',
+        'description' => 'Returns the mobile main menu view for annotation block',
+        'type' => 'read',
+        'ajax' => false,
+        'loginrequired' => true,
+    ],
+];

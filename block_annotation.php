@@ -324,6 +324,7 @@ class block_annotation extends block_base
 
         $templatedata = [
             'annotations' => $annotations,
+            'wwwroot' => $CFG->wwwroot ?? '',
         ];
 
         return [
@@ -335,6 +336,63 @@ class block_annotation extends block_base
             ],
             'javascript' => '',
             'otherdata' => '',
+            'files' => [],
+        ];
+    }
+
+    /**
+     * Mobile view for main menu (Dashboard)
+     *
+     * @param array $args Arguments from mobile app
+     * @return array HTML and other data for mobile
+     */
+    public static function mobile_main_menu_view($args)
+    {
+        global $OUTPUT, $USER, $CFG, $DB;
+
+        $args = (object) $args;
+
+        // Get default or most recent block instance for this user
+        $instances = $DB->get_records(
+            'block_instances',
+            ['blockname' => 'annotation'],
+            'timemodified DESC',
+            '*',
+            0,
+            1
+        );
+
+        $configdata = new \stdClass();
+        if (!empty($instances)) {
+            $instance = reset($instances);
+            $configdata = !empty($instance->configdata) ? unserialize(base64_decode($instance->configdata)) : new \stdClass();
+        }
+
+        // Create temporary block instance for API call
+        $tempblock = new block_annotation();
+        $tempblock->config = $configdata;
+
+        // Get annotations from API
+        $annotations = $tempblock->get_annotations_from_api();
+
+        $templatedata = [
+            'annotations' => $annotations,
+            'wwwroot' => $CFG->wwwroot ?? '',
+            'ismainmenu' => true,
+        ];
+
+        return [
+            'templates' => [
+                [
+                    'id' => 'main',
+                    'html' => $OUTPUT->render_from_template('block_annotation/annotation_list', $templatedata),
+                ]
+            ],
+            'javascript' => '',
+            'otherdata' => [
+                'title' => get_string('pluginname', 'block_annotation'),
+            ],
+            'files' => [],
         ];
     }
 }
