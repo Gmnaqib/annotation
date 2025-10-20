@@ -26,17 +26,9 @@ defined('MOODLE_INTERNAL') || die();
 
 $functions = [
     'block_annotation_mobile_view' => [
-        'classname' => 'block_annotation',
+        'classname' => 'block_annotation\output\mobile',
         'methodname' => 'mobile_view',
         'description' => 'Returns the mobile view for annotation block',
-        'type' => 'read',
-        'ajax' => false,
-        'loginrequired' => true,
-    ],
-    'block_annotation_mobile_main_menu_view' => [
-        'classname' => 'block_annotation',
-        'methodname' => 'mobile_main_menu_view',
-        'description' => 'Returns the mobile main menu view for annotation block',
         'type' => 'read',
         'ajax' => false,
         'loginrequired' => true,
