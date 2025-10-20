@@ -1,0 +1,23 @@
+{{!
+    @template block_annotation/mobile_view
+
+    Mobile template for annotation block.
+
+    Context variables required for this template:
+    * text - The block content text
+    * title - The block title
+
+    Example context (json):
+    {
+        "text": "Sample annotation content",
+        "title": "Annotation Block"
+    }
+}}
+<ion-card class="block-annotation">
+    <ion-card-header>
+        <ion-card-title>{{ title }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+        {{{ text }}}
+    </ion-card-content>
+</ion-card>

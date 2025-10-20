@@ -1,0 +1,43 @@
+{{!
+    @template block_annotation/annotation_list
+
+    Template for displaying annotation list.
+
+    Context variables required for this template:
+    * annotations - Array of annotation objects
+
+    Example context (json):
+    {
+        "annotations": [
+            {
+                "title": "Sample Annotation",
+                "description": "This is a sample description",
+                "type": "article",
+                "image_url": "https://example.com/image.jpg",
+                "content": "Full content here"
+            }
+        ]
+    }
+}}
+<div class="annotation-list">
+{{#annotations}}
+  <div class="annotation-item" style="margin-bottom:12px; border:1px solid #ddd; border-radius:6px; padding:8px;">
+    {{#image_url}}
+      <img src="{{image_url}}" alt="{{title}}" style="width:100%; max-height:120px; object-fit:cover; margin-bottom:8px; border-radius:4px;">
+    {{/image_url}}
+    <h4 style="margin:0 0 8px 0; font-size:1.1em; color:#333;">{{title}}</h4>
+    <p style="margin:0 0 8px 0; color:#666; line-height:1.4;">{{description}}</p>
+    <small style="color:#999; font-style:italic;"><em>{{type}}</em></small>
+    {{#content}}
+      <div class="annotation-content" style="margin-top:8px; padding-top:8px; border-top:1px solid #eee; font-size:0.9em; color:#555;">
+        {{content}}
+      </div>
+    {{/content}}
+  </div>
+{{/annotations}}
+{{^annotations}}
+  <div class="no-annotations" style="text-align:center; padding:20px; color:#999; font-style:italic;">
+    <p>{{#str}}noannotations, block_annotation{{/str}}</p>
+  </div>
+{{/annotations}}
+</div>

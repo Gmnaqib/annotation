@@ -1,0 +1,93 @@
+/* Annotation block styles */
+.block_annotation .annotation-list {
+  margin: 0;
+  padding: 0;
+}
+
+.block_annotation .annotation-item {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  padding: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.block_annotation .annotation-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.block_annotation .annotation-item img {
+  width: 100%;
+  max-height: 150px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.block_annotation .annotation-item h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #343a40;
+  line-height: 1.3;
+}
+
+.block_annotation .annotation-item p {
+  margin: 0 0 10px 0;
+  color: #6c757d;
+  line-height: 1.4;
+  font-size: 0.9em;
+}
+
+.block_annotation .annotation-item small {
+  color: #868e96;
+  font-style: italic;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.block_annotation .annotation-content {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e9ecef;
+  font-size: 0.85em;
+  color: #495057;
+  line-height: 1.5;
+}
+
+.block_annotation .no-annotations {
+  text-align: center;
+  padding: 30px 15px;
+  color: #adb5bd;
+  font-style: italic;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .block_annotation .annotation-item {
+    margin-bottom: 10px;
+    padding: 10px;
+  }
+
+  .block_annotation .annotation-item h4 {
+    font-size: 1em;
+  }
+
+  .block_annotation .annotation-item p {
+    font-size: 0.85em;
+  }
+}
+
+/* Dark theme support */
+.theme-boost-union .block_annotation .annotation-item,
+body.theme-adaptable .block_annotation .annotation-item {
+  background: var(--bs-body-bg, #fff);
+  border-color: var(--bs-border-color, #dee2e6);
+}
+
+.theme-boost-union .block_annotation .annotation-item h4,
+body.theme-adaptable .block_annotation .annotation-item h4 {
+  color: var(--bs-body-color, #343a40);
+}

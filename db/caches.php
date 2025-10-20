@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Mobile addons are declared here.
+ * Cache definitions for block_annotation
  *
  * @package     block_annotation
  * @copyright   2025 Gumilar <gumilarmn@gmail.com>
@@ -24,21 +24,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$addons = [
-    'block_annotation' => [
-        'handlers' => [
-            'annotationhandler' => [
-                'delegate' => 'CoreCourseOptionsDelegate',
-                'method' => 'mobile_view',
-                'displaydata' => [
-                    'title' => 'pluginname',
-                    'icon' => 'i/edit',
-                    'class' => 'block_annotation'
-                ],
-            ],
-        ],
-        'lang' => [
-            ['pluginname', 'block_annotation'],
-        ],
+$definitions = [
+    'apidata' => [
+        'mode' => cache_store::MODE_APPLICATION,
+        'simplekeys' => true,
+        'simpledata' => false,
+        'ttl' => 300, // 5 minutes default
     ],
 ];

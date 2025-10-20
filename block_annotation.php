@@ -43,6 +43,7 @@ class block_annotation extends block_base
      */
     public function get_content()
     {
+        global $OUTPUT, $COURSE, $USER, $PAGE;
 
         if ($this->content !== null) {
             return $this->content;
@@ -58,14 +59,153 @@ class block_annotation extends block_base
         $this->content->icons = [];
         $this->content->footer = '';
 
-        if (!empty($this->config->text)) {
-            $this->content->text = $this->config->text;
-        } else {
-            $text = 'Please define the content text in /blocks/annotation/block_annotation.php.';
-            $this->content->text = $text;
-        }
+        // Get annotations from API
+        $annotations = $this->get_annotations_from_api();
+
+        // Render annotations using template
+        $templatedata = [
+            'annotations' => $annotations,
+        ];
+
+        $this->content->text = $OUTPUT->render_from_template('block_annotation/annotation_list', $templatedata);
 
         return $this->content;
+    }
+
+    /**
+     * Fetch annotations from external API
+     *
+     * @return array Array of annotations
+     */
+    private function get_annotations_from_api()
+    {
+        global $COURSE, $USER, $PAGE;
+
+        // Get configuration values
+        $api_url = !empty($this->config->api_url) ? $this->config->api_url : 'https://example.com/api/annotations';
+        $api_timeout = !empty($this->config->api_timeout) ? (int)$this->config->api_timeout : 30;
+        $cache_duration = !empty($this->config->cache_duration) ? (int)$this->config->cache_duration : 300;
+
+        // Prepare data to send to API
+        $course_id = $COURSE->id;
+        $user_id = $USER->id;
+
+        // Get module ID if available
+        $module_id = 0;
+        if (isset($PAGE->cm) && $PAGE->cm) {
+            $module_id = $PAGE->cm->id;
+        }
+
+        $postdata = [
+            'course_id' => $course_id,
+            'module_id' => $module_id,
+            'user_id' => $user_id,
+        ];
+
+        // Create cache key
+        $cache_key = 'block_annotation_' . md5($api_url . serialize($postdata));
+
+        // Try to get from cache first
+        $cache = cache::make('block_annotation', 'apidata');
+        $cached_data = $cache->get($cache_key);
+
+        if ($cached_data !== false) {
+            return $cached_data;
+        }
+
+        // Initialize curl
+        $curl = new curl();
+        $curl->setopt([
+            'CURLOPT_TIMEOUT' => $api_timeout,
+            'CURLOPT_CONNECTTIMEOUT' => 10,
+            'CURLOPT_HTTPHEADER' => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+            ],
+        ]);
+
+        try {
+            // Make API call
+            $response = $curl->post($api_url, json_encode($postdata));
+
+            if ($curl->get_errno()) {
+                // Log error and return empty array
+                debugging('Annotation API curl error: ' . $curl->error);
+                return $this->get_fallback_data();
+            }
+
+            // Decode JSON response
+            $data = json_decode($response, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                debugging('Annotation API JSON decode error: ' . json_last_error_msg());
+                return $this->get_fallback_data();
+            }
+
+            // Validate and sanitize data
+            $validated_data = $this->validate_annotation_data($data);
+
+            // Cache the result
+            $cache->set($cache_key, $validated_data);
+
+            return $validated_data;
+        } catch (Exception $e) {
+            debugging('Annotation API exception: ' . $e->getMessage());
+            return $this->get_fallback_data();
+        }
+    }
+
+    /**
+     * Get fallback data when API fails
+     *
+     * @return array Fallback annotation data
+     */
+    private function get_fallback_data()
+    {
+        return [
+            [
+                'title' => 'Sample Annotation',
+                'description' => 'This is a sample annotation. Configure the API URL in block settings to fetch real data.',
+                'type' => 'example',
+                'image_url' => '',
+                'content' => 'API connection failed. Please check your API URL configuration.',
+            ]
+        ];
+    }
+
+    /**
+     * Validate and sanitize annotation data from API
+     *
+     * @param array $data Raw data from API
+     * @return array Validated annotation data
+     */
+    private function validate_annotation_data($data)
+    {
+        if (!is_array($data)) {
+            return [];
+        }
+
+        $validated = [];
+        foreach ($data as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $annotation = [
+                'title' => isset($item['title']) ? clean_text($item['title']) : '',
+                'description' => isset($item['description']) ? clean_text($item['description']) : '',
+                'type' => isset($item['type']) ? clean_text($item['type']) : '',
+                'image_url' => isset($item['image_url']) ? clean_param($item['image_url'], PARAM_URL) : '',
+                'content' => isset($item['content']) ? clean_text($item['content']) : '',
+            ];
+
+            // Only add if title exists
+            if (!empty($annotation['title'])) {
+                $validated[] = $annotation;
+            }
+        }
+
+        return $validated;
     }
 
     /**
@@ -112,7 +252,89 @@ class block_annotation extends block_base
     public function applicable_formats()
     {
         return [
-            'all' => true,
+            'course-view' => true,
+            'mod' => true,
+            'my' => true,
+            'site-index' => true,
+        ];
+    }
+
+    /**
+     * Return the plugin config settings for external functions.
+     *
+     * @return stdClass the configs for both the block instance and plugin
+     * @since Moodle 3.8
+     */
+    public function get_config_for_external()
+    {
+        // Return the configuration for the mobile app.
+        $configs = !empty($this->config) ? $this->config : new stdClass();
+        return (object) [
+            'instance' => $configs,
+            'plugin' => new stdClass(),
+        ];
+    }
+
+    /**
+     * Serialize and store config data
+     */
+    public function instance_config_save($data, $nolongerused = false)
+    {
+        parent::instance_config_save($data, $nolongerused);
+    }
+
+    /**
+     * Allow the block to have a configuration page
+     *
+     * @return boolean
+     */
+    public function instance_allow_config()
+    {
+        return true;
+    }
+
+    /**
+     * Mobile view for annotation block
+     *
+     * @param array $args Arguments from mobile app
+     * @return array HTML and other data for mobile
+     */
+    public static function mobile_view($args)
+    {
+        global $OUTPUT, $COURSE, $USER, $PAGE, $DB;
+
+        $args = (object) $args;
+
+        // Get block instance
+        if (isset($args->instanceid)) {
+            $instance = $DB->get_record('block_instances', ['id' => $args->instanceid]);
+            if ($instance) {
+                $configdata = !empty($instance->configdata) ? unserialize(base64_decode($instance->configdata)) : new \stdClass();
+            }
+        }
+
+        // Create temporary block instance for API call
+        $tempblock = new block_annotation();
+        if (isset($configdata)) {
+            $tempblock->config = $configdata;
+        }
+
+        // Get annotations from API
+        $annotations = $tempblock->get_annotations_from_api();
+
+        $templatedata = [
+            'annotations' => $annotations,
+        ];
+
+        return [
+            'templates' => [
+                [
+                    'id' => 'main',
+                    'html' => $OUTPUT->render_from_template('block_annotation/annotation_list', $templatedata),
+                ]
+            ],
+            'javascript' => '',
+            'otherdata' => '',
         ];
     }
 }

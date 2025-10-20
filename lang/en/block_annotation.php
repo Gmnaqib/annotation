@@ -27,8 +27,18 @@ defined('MOODLE_INTERNAL') || die();
 
 $string['annotation:addinstance'] = 'Add a new Annotation block';
 $string['annotation:myaddinstance'] = 'Add a new Annotation block to Dashboard';
+$string['apiurl'] = 'API URL';
+$string['apiurl_help'] = 'The URL of the external API to fetch annotations from. This API should accept POST requests with course_id, module_id, and user_id parameters.';
+$string['apitimeout'] = 'API timeout (seconds)';
+$string['apitimeout_help'] = 'Timeout in seconds for API requests. Default is 30 seconds.';
+$string['blocktitle'] = 'Block title';
+$string['blocktitle_help'] = 'The title to display at the top of the block.';
+$string['blockstring'] = 'Block content';
+$string['cacheduration'] = 'Cache duration (seconds)';
+$string['cacheduration_help'] = 'How long to cache API responses in seconds. Default is 300 seconds (5 minutes).';
 $string['errorloading'] = 'Failed to fetch annotations from API.';
 $string['loading'] = 'Loading annotations...';
+$string['noannotations'] = 'No annotations available.';
 $string['pluginname'] = 'Annotation Block';
 $string['privacy:metadata'] = 'The Annotation block fetches text modules from an external API but does not store user data locally.';
 $string['settings'] = 'Annotation Settings';
